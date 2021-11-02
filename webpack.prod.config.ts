@@ -4,11 +4,16 @@ import HtmlWebpackPlugin from "html-webpack-plugin";
 import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import ESLintPlugin from "eslint-webpack-plugin";
 import { CleanWebpackPlugin } from "clean-webpack-plugin";
+import packageJson from './package.json';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+// eslint-disable-next-line import/no-unresolved
+import ModuleFederationPlugin from 'webpack/lib/container/ModuleFederationPlugin';
 
 
 const config: Configuration = {
   mode: "production",
-  entry: "./src/index.tsx",
+  entry: "./src/index.ts",
   output: {
     path: path.resolve(__dirname, "build"),
     filename: "[name].[contenthash].js",
@@ -52,6 +57,18 @@ const config: Configuration = {
       extensions: ["js", "jsx", "ts", "tsx"],
     }),
     new CleanWebpackPlugin(),
+    new ModuleFederationPlugin({
+      name: 'AmplifyWrapper',
+      filename: 'web-client-remote.js',
+      remotes: {
+        WebClientApp: 'WebClientApp@http://localhost:5000/web-client-remote.js'
+      },
+      shared: {
+        ...packageJson.dependencies,
+        react: { singleton: true, eager: true, requiredVersion: packageJson.dependencies.react },
+        "react-dom": { singleton: true, eager: true, requiredVersion: packageJson.dependencies["react-dom"] }
+      },
+    }),
   ],
 };
 

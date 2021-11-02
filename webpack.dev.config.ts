@@ -1,8 +1,12 @@
-import path from "path";
 import { Configuration, HotModuleReplacementPlugin } from "webpack";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
 import ESLintPlugin from "eslint-webpack-plugin";
+import packageJson from './package.json';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+// eslint-disable-next-line import/no-unresolved
+import ModuleFederationPlugin from 'webpack/lib/container/ModuleFederationPlugin';
 
 
 const config: Configuration = {
@@ -10,7 +14,7 @@ const config: Configuration = {
   output: {
     publicPath: "/",
   },
-  entry: "./src/index.tsx",
+  entry: "./src/index.ts",
   module: {
     rules: [
       {
@@ -48,6 +52,16 @@ const config: Configuration = {
     }),
     new ESLintPlugin({
       extensions: ["js", "jsx", "ts", "tsx"],
+    }),
+    new ModuleFederationPlugin({
+      name: 'AmplifyWrapper',
+      filename: 'web-client-remote.js',
+      remotes: {
+        WebClientApp: 'WebClientApp@http://localhost:5000/web-client-remote.js'
+      },
+      shared: {
+        ...packageJson.dependencies
+      },
     }),
   ],
   devtool: "inline-source-map",
